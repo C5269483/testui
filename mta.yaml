@@ -1,0 +1,67 @@
+_schema-version: "3.2"
+ID: testui
+version: 0.0.1
+modules:
+- name: testui-approuter
+  type: approuter.nodejs
+  path: testui-approuter
+  requires:
+  - name: testui_html_repo_runtime
+  - name: uaa_testui
+  - name: dest_testui
+  - name: conn_testui
+  parameters:
+    disk-quota: 256M
+    memory: 256M
+- name: testui_ui_deployer
+  type: com.sap.html5.application-content
+  path: testui_ui_deployer
+  requires:
+  - name: testui_html_repo_host
+  build-parameters:
+    requires:
+    - artifacts:
+      - ./*
+      name: uimod
+      target-path: resources/uimod
+- name: uimod
+  type: html5
+  path: uimod
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm run build
+    supported-platforms: []
+resources:
+- name: testui_html_repo_runtime
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-runtime
+- name: testui_html_repo_host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-host
+- name: uaa_testui
+  type: org.cloudfoundry.managed-service
+  parameters:
+    path: ./xs-security.json
+    service: xsuaa
+    service-plan: application
+- name: conn_testui
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: connectivity
+    service-plan: lite
+- name: dest_testui
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: destination
+    service-plan: lite
+build-parameters:
+  before-all:
+  - builder: custom
+    commands:
+    - npm install
